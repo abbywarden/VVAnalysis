@@ -273,11 +273,15 @@ void ZSelector::FillHistograms(Long64_t entry, std::pair<Systematic, std::string
         ZMass_ee_->Fill(ZMass, weight);
         ptl1_ee_->Fill(l1Pt, weight);
         ptl2_ee_->Fill(l2Pt, weight);
+        l1eta_ee_->Fill(l1Eta, weight);
+        l2eta_ee_->Fill(l2Eta, weight);
     }
     else if (channel_ == mm) {
         ZMass_mm_->Fill(ZMass, weight);
         ptl1_mm_->Fill(l1Pt, weight);
         ptl2_mm_->Fill(l2Pt, weight);
+        l1eta_mm_->Fill(l1Eta, weight);
+        l2eta_ee_->Fill(l2Eta, weight);
     }
     else
         throw std::domain_error("Invalid channel!");
@@ -293,5 +297,9 @@ void ZSelector::SetupNewDirectory() {
     AddObject<TH1D>(ptl1_ee_, "ptl1_ee", "Tight leptons; p_{T}(e_{1}) [GeV]", 75, 0, 150);
     AddObject<TH1D>(ptl1_mm_, "ptl1_mm", "Tight leptons; p_{T}(#mu_{1}) [GeV]", 75, 0, 150);
     AddObject<TH1D>(ptl2_ee_, "ptl2_ee", "Tight leptons; p_{T}(e_{2}) [GeV]", 100, 0, 100);
-    AddObject<TH1D>(ptl2_mm_, "ptl2_mm", "Tight leptons; p_{T}(#mu_{2}) [GeV]", 100, 0, 100);
+    AddObject<TH1D>(ptl2_mm_, "ptl2_mm", "Tight leptons; p_{T}(#mu_{2}) [GeV]", 100, 0, 5);
+    AddObject<TH1D>(l1eta_ee_, "l1eta_ee", "Tight leptons; (e_{1})", 100, 0, 5);
+    AddObject<TH1D>(l1eta_mm_, "l1eta_mm", "Tight leptons; (#mu_{1})", 100, 0, 5);  
+    AddObject<TH1D>(l2eta_ee_, "l2eta_ee", "Tight leptons; (e_{2})", 100, 0, 5);
+    AddObject<TH1D>(l2eta_mm_, "l2eta_mm", "Tight leptons; (#mu_{2})", 100, 0, 5);  
 }
