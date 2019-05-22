@@ -8,7 +8,7 @@ import os
 
 def applySelector(filelist, selector_name, selection, 
         rootfile,
-        analysis="WZxsec2016", channels=["eee", "eem", "emm", "mmm"], 
+        analysis, channels=["eee", "eem", "emm", "mmm"], 
         extra_inputs = [],
         nanoAOD=False,
         addSumweights=True,
@@ -22,13 +22,20 @@ def applySelector(filelist, selector_name, selection,
         tchannel = ROOT.TNamed("channel", chan)
         inputs.Add(tchannel)
         for dataset in ConfigureJobs.getListOfFiles(filelist, selection):
+            tname = ROOT.TNamed("name", dataset)
+            inputs.Add(tname)
             select = getattr(ROOT, selector_name)()
             select.SetInputList(inputs)
             print "Processing channel %s for dataset %s" % (chan, dataset)
             try:
                 file_path = ConfigureJobs.getInputFilesPath(dataset, 
                     selection, analysis)
-                processLocalFiles(select, file_path, chan, nanoAOD)
+                # Only add for one channel
+                addWeights = addSumweights and i == 0
+                if addWeights:
+                    ROOT.gROOT.cd()
+                    sumweights_hist = ROOT.TH1D("sumweights", "sumweights", 100, 0, 100)
+                processLocalFiles(select, file_path, chan, nanoAOD, addSumweights )
             except ValueError as e:
                 print e
                 continue
@@ -42,13 +49,9 @@ def applySelector(filelist, selector_name, selection,
                 else:
                     print 'WARNING: Skipping dataset %s' % dataset
                     continue
-            # Only add for one channel
-            if addSumweights and i == 0:
-                meta_chain = ROOT.TChain("metaInfo/metaInfo")
-                meta_chain.Add(file_path)
-                sumweights = ROOT.TH1D("sumweights", "sumweights", 1, 0, 10)
-                meta_chain.Draw("1>>sumweights", "summedWeights")
+            if addSumweights:
                 dataset_list.Add(ROOT.gROOT.FindObject("sumweights"))
+
             OutputTools.writeOutputListItem(dataset_list, rootfile)
             output_list.Delete()
             ROOT.gROOT.GetList().Delete()
@@ -56,17 +59,42 @@ def applySelector(filelist, selector_name, selection,
         #proof_path = "_".join([analysis, selection+("#/%s/ntuple" % chan)])
         #ROOT.gProof.Process(proof_path, select, "")
 
-def processLocalFiles(selector, file_path, chan, nanoAOD):
-    if not os.path.isdir(file_path.rsplit("/", 1)[0]):
-        raise ValueError("Invalid path! Path was %s" 
+def processLocalFiles(selector, file_path, chan, nanoAOD, addSumweights):
+    xrootd = "/store/user" in file_path
+    if not (xrootd or os.path.isfile(file_path) or os.path.isdir(file_path.rsplit("/", 1)[0])):
+        raise ValueError("Invalid path! Skipping dataset. Path was %s" 
             % file_path)
-    for filename in glob.glob(file_path):
-        rtfile = ROOT.TFile(filename)
+
+    # Assuming these are user files on HDFS, otherwise it won't work
+    filenames =  glob.glob(file_path) if not xrootd else \
+            ConfigureJobs.getListOfHDFSFiles(file_path)
+    for i, filename in enumerate(filenames):
+        if "/store/user" in filename:
+            filename = 'root://cmsxrootd.hep.wisc.edu/' + filename
+        rtfile = ROOT.TFile.Open(filename)
         tree_name = "Events" if nanoAOD else "%s/ntuple" % chan
         tree = rtfile.Get(tree_name)
         if not tree:
-            raise ValueError(("tree %s/ntuple not found for file %s. " \
-                    "Probably it is corrupted") % (chan, filename)
+            raise ValueError(("tree %s not found for file %s. " \
+                    "Probably the file is corrupted") % (tree_name, filename)
             )
 
         tree.Process(selector, "")
+        if addSumweights:
+            fillSumweightsHist(rtfile, i+1, nanoAOD)
+        rtfile.Close()
+
+def fillSumweightsHist(rtfile, filenum, isNanoAOD):
+    if isNanoAOD:
+        sumweights_branch = "genEventSumw"
+        meta_tree_name = "Runs"
+    else:
+        sumweights_branch = "sumWeights"
+        meta_tree_name = "metaInfo/metaInfo"
+    meta_tree = rtfile.Get(meta_tree_name)
+    ROOT.gROOT.cd()
+    sumweights_hist = ROOT.gROOT.FindObject("sumweights")
+    tmplabel = sumweights_hist.GetName()+"_i"
+    tmpweights_hist = sumweights_hist.Clone(tmplabel)
+    meta_tree.Draw("%i>>%s" % (filenum, tmplabel), sumweights_branch)
+    sumweights_hist.Add(tmpweights_hist)
