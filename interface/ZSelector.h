@@ -101,6 +101,10 @@ public :
     TH1D* ptl1_mm_; 
     TH1D* ptl2_ee_; 
     TH1D* ptl2_mm_; 
+    TH1D* l1eta_ee_;
+    TH1D* l1eta_mm_;
+    TH1D* l2eta_ee_;
+    TH1D* l2eta_mm_;
 
     // Readers to access the data (delete the ones you do not need).
     //virtual void    SetScaleFactors() override;
