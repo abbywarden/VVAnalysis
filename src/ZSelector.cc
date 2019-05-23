@@ -298,8 +298,8 @@ void ZSelector::SetupNewDirectory() {
     AddObject<TH1D>(ptl1_mm_, "ptl1_mm", "Tight leptons; p_{T}(#mu_{1}) [GeV]", 75, 0, 150);
     AddObject<TH1D>(ptl2_ee_, "ptl2_ee", "Tight leptons; p_{T}(e_{2}) [GeV]", 100, 0, 100);
     AddObject<TH1D>(ptl2_mm_, "ptl2_mm", "Tight leptons; p_{T}(#mu_{2}) [GeV]", 100, 0, 100);
-    AddObject<TH1D>(l1eta_ee_, "l1eta_ee", "Tight leptons; (e_{1})", 100, -5, 5);
-    AddObject<TH1D>(l1eta_mm_, "l1eta_mm", "Tight leptons; (#mu_{1})", 100, -5, 5);  
-    AddObject<TH1D>(l2eta_ee_, "l2eta_ee", "Tight leptons; (e_{2})", 100, -5, 5);
-    AddObject<TH1D>(l2eta_mm_, "l2eta_mm", "Tight leptons; (#mu_{2})", 100, -5, 5);  
+    AddObject<TH1D>(l1eta_ee_, "l1eta_ee", "Tight leptons; eta(e_{1})", 100, -5, 5);
+    AddObject<TH1D>(l1eta_mm_, "l1eta_mm", "Tight leptons; eta(#mu_{1})", 100, -5, 5);  
+    AddObject<TH1D>(l2eta_ee_, "l2eta_ee", "Tight leptons; eta(e_{2})", 100, -5, 5);
+    AddObject<TH1D>(l2eta_mm_, "l2eta_mm", "Tight leptons; eta(#mu_{2})", 100, -5, 5);  
 }
