@@ -281,7 +281,7 @@ void ZSelector::FillHistograms(Long64_t entry, std::pair<Systematic, std::string
         ptl1_mm_->Fill(l1Pt, weight);
         ptl2_mm_->Fill(l2Pt, weight);
         l1eta_mm_->Fill(l1Eta, weight);
-        l2eta_ee_->Fill(l2Eta, weight);
+        l2eta_mm_->Fill(l2Eta, weight);
     }
     else
         throw std::domain_error("Invalid channel!");
