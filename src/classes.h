@@ -7,6 +7,7 @@
 #include "Analysis/VVAnalysis/interface/ScaleFactor.h"
 #include "Analysis/VVAnalysis/interface/disambiguateFinalStates.h"
 #include "Analysis/VVAnalysis/interface/disambiguateFinalStatesZZ.h"
+#include "Analysis/VVAnalysis/interface/SameSignLept.h"
 
 namespace{
   namespace{
@@ -19,5 +20,6 @@ namespace{
     ScaleFactor pScaleFactor;
     disambiguateFinalStates pDisambiguator;
     disambiguateFinalStates pDisambiguatorZZ;
+    SameSignLept pSameSignLept;
   }
 }
