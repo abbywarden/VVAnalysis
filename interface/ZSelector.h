@@ -24,6 +24,8 @@ public :
     ScaleFactor* mIdSF_;
     ScaleFactor* mIsoSF_;
 
+    bool  returning_value;
+
     // Derived values
     bool passesLeptonVeto;
     UInt_t nCBVIDTightElec;
@@ -45,6 +47,8 @@ public :
     Float_t ZMass;
     Bool_t l1IsTight;
     Bool_t l2IsTight;
+    
+    
 
     // Values read from file
     Float_t genWeight;
@@ -101,7 +105,15 @@ public :
     TH1D* ptl1_mm_; 
     TH1D* ptl2_ee_; 
     TH1D* ptl2_mm_; 
-
+    TH1D* l1eta_ee_;
+    TH1D* l2eta_ee_;
+    TH1D* l1eta_mm_;
+    TH1D* l2eta_mm_;
+    TH1D* l1phi_mm_;
+    TH1D* l2phi_mm_;
+    TH1D* l1phi_ee_;
+    TH1D* l2phi_ee_;
+ 
     // Readers to access the data (delete the ones you do not need).
     //virtual void    SetScaleFactors() override;
     virtual void    Init(TTree *tree) override;
@@ -115,6 +127,9 @@ protected:
     bool zlep1IsTight();
     bool zlep2IsTight();
     bool tightZLeptons();
+   
+   
+
     virtual void    SetBranchesNanoAOD() override;
     virtual void    SetBranchesUWVV() override;
     void LoadBranchesUWVV(Long64_t entry, std::pair<Systematic, std::string> variation) override;
