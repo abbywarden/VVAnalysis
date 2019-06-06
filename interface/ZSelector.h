@@ -1,4 +1,4 @@
-#ifndef ZSelector_h
+/*#ifndef ZSelector_h
 #define ZSelector_h
 
 #include <TROOT.h>
@@ -117,8 +117,8 @@ public :
     // Readers to access the data (delete the ones you do not need).
     //virtual void    SetScaleFactors() override;
     virtual void    Init(TTree *tree) override;
-    ZSelector(TTree * /*tree*/ =0) { }
-    ~ZSelector() { }
+    ZSelector(TTree * /*tree*/// =0) { }
+/*  ~ZSelector() { }
     virtual void    SetupNewDirectory() override;
 
     ClassDefOverride(ZSelector,0);
@@ -142,3 +142,4 @@ protected:
 #endif
 
 
+*/ 
