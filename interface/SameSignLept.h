@@ -114,13 +114,13 @@ public :
     TH1D* l2phi_mm_;
     TH1D* l1phi_ee_;
     TH1D* l2phi_ee_;
- 
+
     // Readers to access the data (delete the ones you do not need).
     //virtual void    SetScaleFactors() override;
     virtual void    Init(TTree *tree) override;
-    SameSignLept(TTree * /*tree*/ =0) { }
+    SameSignLept(TTree * /*tree*/ =0) { } 
     ~SameSignLept() { }
-    virtual void    SetupNewDirectory() override;
+    virtual void    SetupNewDirectory() override; 
 
     ClassDefOverride(SameSignLept,0);
 
@@ -140,8 +140,8 @@ protected:
     void ApplyScaleFactors();
     void SetMass();
     void FillHistograms(Long64_t entry, std::pair<Systematic, std::string> variation) override;
+ 
 };
 
 #endif
-
 
