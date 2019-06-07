@@ -145,6 +145,7 @@ if "WZxsec2016" in analysis and "FakeRate" not in args['output_selection'] and n
 selector_map = {
     "WZxsec2016" : "WZSelector",
     "Zstudy" : "ZSelector",
+    "Topstudy" : "SameSignLept",
 }
 
 #using function applySelector defined in Selector Tools file. 

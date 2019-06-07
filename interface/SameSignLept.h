@@ -46,6 +46,7 @@ public :
     Float_t l1Mass;
     Float_t l2Mass;
     Float_t ZMass;
+    Float_t CombMass;
     Bool_t l1IsTight;
     Bool_t l2IsTight;
     Bool_t l1IsMed;
@@ -54,10 +55,14 @@ public :
     // Values read from file
     Float_t genWeight;
     Float_t MET;
+    Float_t Jet_mass;
+    Float_t Jet_btagCSVV2;
+    Float_t Jet_pt;
     Float_t type1_pfMETPhi;
-    static const unsigned int N_KEEP_MU_E_ = 10;
+    static const unsigned int N_KEEP_MU_E_ = 15;
     UInt_t nElectron;
     UInt_t nMuon;
+    UInt_t nJet;
     Float_t Electron_pt[N_KEEP_MU_E_];
     Float_t Electron_eta[N_KEEP_MU_E_];
     Float_t Electron_phi[N_KEEP_MU_E_];
@@ -96,12 +101,16 @@ public :
     TBranch* b_Muon_pfIsoId;
     TBranch* b_Muon_pfRelIso04_all;
     TBranch* b_numPU;
+    TBranch* b_nJet;
+    TBranch* b_Jet_pt;
+    TBranch* b_Jet_mass;
+    TBranch* b_Jet_btagCSVV2;
 
     // Histograms
     TH1D* cutflow_ee_;
     TH1D* cutflow_mm_;
-    TH1D* ZMass_ee_;
-    TH1D* ZMass_mm_;
+    TH1D* CombMass_ee_;
+    TH1D* CombMass_mm_;
     TH1D* ptl1_ee_; 
     TH1D* ptl1_mm_; 
     TH1D* ptl2_ee_; 
@@ -114,7 +123,7 @@ public :
     TH1D* l2phi_mm_;
     TH1D* l1phi_ee_;
     TH1D* l2phi_ee_;
-
+   
     // Readers to access the data (delete the ones you do not need).
     //virtual void    SetScaleFactors() override;
     virtual void    Init(TTree *tree) override;

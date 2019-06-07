@@ -39,7 +39,7 @@ def applySelector(filelist, selector_name, selection,
             print "Processing channel %s for dataset %s" % (chan, dataset)
             try:
                 file_path = ConfigureJobs.getInputFilesPath(dataset, 
-                    selection, analysis)
+                                                            selection, analysis)
                 processLocalFiles(select, file_path, chan, nanoAOD)
             except ValueError as e:
                 print e

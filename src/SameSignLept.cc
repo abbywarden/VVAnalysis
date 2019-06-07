@@ -43,9 +43,16 @@ void SameSignLept::SetBranchesNanoAOD() {
     fChain->SetBranchAddress("Muon_charge", &Muon_charge, &b_Muon_charge);
     fChain->SetBranchAddress("Electron_mass", &Electron_mass, &b_Electron_mass);
     fChain->SetBranchAddress("Muon_mass", &Muon_mass, &b_Muon_mass);
+    fChain->SetBranchAddress("nJet", &nJet, &b_nJet);
+    fChain->SetBranchAddress("Jet_pt", &Jet_pt, &b_Jet_pt);
+    fChain->SetBranchAddress("Jet_mass", &Jet_mass, &b_Jet_mass);
+    fChain->SetBranchAddress("Jet_btagCSVV2", &Jet_btagCSVV2, &b_Jet_btagCSVV2);
+   
+
+
     if (isMC_) {
-        fChain->SetBranchAddress("genWeight", &genWeight, &b_genWeight);
-        fChain->SetBranchAddress("Pileup_nPU", &numPU, &b_numPU);
+      fChain->SetBranchAddress("genWeight", &genWeight, &b_genWeight);
+      fChain->SetBranchAddress("Pileup_nPU", &numPU, &b_numPU);
     }
 }
 
@@ -68,7 +75,12 @@ void SameSignLept::LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std
     b_Electron_mass->GetEntry(entry);
     b_Muon_mass->GetEntry(entry);
     b_MET->GetEntry(entry);
-
+    b_nJet->GetEntry(entry);
+    b_Jet_pt->GetEntry(entry);
+    b_Jet_mass->GetEntry(entry);
+    b_Jet_btagCSVV2->GetEntry(entry);
+  
+ 
     if (nElectron > N_KEEP_MU_E_ || nMuon > N_KEEP_MU_E_) {
         std::string message = "Found more electrons or muons than max read number.\n    Found ";
         message += std::to_string(nElectron);
@@ -80,7 +92,7 @@ void SameSignLept::LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std
         throw std::domain_error(message);
     }
 
-    ZMass = 0;
+    CombMass = 0;
     l1Pt = 0;
     l2Pt = 0;
     l1Eta = 0;
@@ -90,16 +102,16 @@ void SameSignLept::LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std
     l1Mass = 0;
     l2Mass = 0;
 
+    
     // cut-based ID Fall17 V2 (0:fail, 1:veto, 2:loose, 3:medium, 4:tight)
-    // for this, we will need tight electron, medium muon...will this suffice or 
-    // do I need something else...?
+   
     nCBVIDTightElec = std::count(Electron_cutBased, Electron_cutBased+nElectron, 4);
     nCBVIDVetoElec = std::count(Electron_cutBased, Electron_cutBased+nElectron, 1);
     nTightIdMuon = std::count(Muon_tightId, Muon_tightId+nMuon, true);
     nMediumIdMuon = std::count(Muon_mediumId, Muon_mediumId+nMuon, true);
     //nTightIsoMuon = std::count(Muon_pfIsoId, Muon_pfIsoId+nMuon, 4);
     //nLooseIsoMuon = std::count(Muon_pfIsoId, Muon_pfIsoId+nMuon, 1);
-
+   
     // originally tight muon...let's try medium
     channel_ = channelMap_[channelName_];
     std::vector<size_t> goodIndices = {};
@@ -130,7 +142,10 @@ void SameSignLept::LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std
             l2Mass = Muon_mass[goodIndices[1]];
             l1IsMed = (Muon_mediumId[goodIndices[0]] && (Muon_pfRelIso04_all[goodIndices[0]] < 0.15));
             l2IsMed = (Muon_mediumId[goodIndices[1]] && (Muon_pfRelIso04_all[goodIndices[1]] < 0.15));
-        }
+	    //	    if (nJet >= 5) {
+	    //std::cout<<"*************Found 5 or more jets in mm channel****************";
+	    // }
+	}
     }
     else if (nCBVIDTightElec >= 2) {
         channel_ = ee;
@@ -156,7 +171,10 @@ void SameSignLept::LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std
             l2Mass = Electron_mass[goodIndices[1]];
             l1IsTight = (Electron_cutBased[goodIndices[0]] == 4);
             l2IsTight = (Electron_cutBased[goodIndices[1]] == 4);
-        }
+	    // if (nJet >= 5) {
+	    //std::cout<<"*********Found 5 or more jets in ee channel**************";
+	    // }
+	}
     }
     SetMass();
 
@@ -176,27 +194,28 @@ void SameSignLept::LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std
     }
     // originally has nMediumIdMuon but using medium id...should we change to tight here? 
     passesLeptonVeto = (std::min(nTightIdMuon, nLooseIsoMuon) + nCBVIDVetoElec) == 2;
+   
 }
-
+    
 void SameSignLept::LoadBranchesUWVV(Long64_t entry, std::pair<Systematic, std::string> variation){ 
-    throw std::domain_error("UWVV ntuples not defined for Z selector!");
-}
+  throw std::domain_error("UWVV ntuples not defined for Z selector!");
 
+}
 void SameSignLept::ApplyScaleFactors() {
-    weight = genWeight;
-    if (channel_ == ee) {
-        weight *= eIdSF_->Evaluate2D(std::abs(l1Eta), l1Pt);
-        weight *= eGsfSF_->Evaluate2D(std::abs(l1Eta), l1Pt);
-        weight *= eIdSF_->Evaluate2D(std::abs(l2Eta), l2Pt);
-        weight *= eGsfSF_->Evaluate2D(std::abs(l2Eta), l2Pt);
-    }
-    else if (channel_ == mm) {
-        weight *= mIdSF_->Evaluate2D(std::abs(l1Eta), l1Pt);
-        weight *= mIsoSF_->Evaluate2D(std::abs(l1Eta), l1Pt);
-        weight *= mIdSF_->Evaluate2D(std::abs(l2Eta), l2Pt);
-        weight *= mIsoSF_->Evaluate2D(std::abs(l2Eta), l2Pt);
-    }
-    weight *= pileupSF_->Evaluate1D(numPU);
+  weight = genWeight;
+  if (channel_ == ee) {
+    weight *= eIdSF_->Evaluate2D(std::abs(l1Eta), l1Pt);
+    weight *= eGsfSF_->Evaluate2D(std::abs(l1Eta), l1Pt);
+    weight *= eIdSF_->Evaluate2D(std::abs(l2Eta), l2Pt);
+    weight *= eGsfSF_->Evaluate2D(std::abs(l2Eta), l2Pt);
+  }
+  else if (channel_ == mm) {
+    weight *= mIdSF_->Evaluate2D(std::abs(l1Eta), l1Pt);
+    weight *= mIsoSF_->Evaluate2D(std::abs(l1Eta), l1Pt);
+    weight *= mIdSF_->Evaluate2D(std::abs(l2Eta), l2Pt);
+    weight *= mIsoSF_->Evaluate2D(std::abs(l2Eta), l2Pt);
+  }
+  weight *= pileupSF_->Evaluate1D(numPU);
 }
 
 void SameSignLept::SetMass() {
@@ -207,13 +226,13 @@ void SameSignLept::SetMass() {
     lepton1.SetPtEtaPhiM(l1Pt, l1Eta, l1Phi, l1Mass);
     TLorentzVector lepton2;
     lepton2.SetPtEtaPhiM(l2Pt, l2Eta, l2Phi, l2Mass);
-    ZMass = (lepton1+lepton2).M();
+    CombMass = (lepton1+lepton2).M();
 }
 
+/*
 // Meant to be a wrapper for the tight ID just in case it changes
 // To be a function of multiple variables
 
-// Modifying a lot since Muons are medium and electrons are tight
 bool SameSignLept::zlep1IsTight() {
   if (channel_==ee) {
     returning_value = l1IsTight;
@@ -255,101 +274,106 @@ bool SameSignLept::tight_med_ZLeptons() {
 bool SameSignLept::medZLeptons() {
   return zlep1IsMed() && zlep2IsMed();
 }
-
+    */
 void SameSignLept::FillHistograms(Long64_t entry, std::pair<Systematic, std::string> variation) { 
-    cutflow_ee_->Fill(0.,weight);
-    cutflow_mm_->Fill(0.,weight);
-    if (channel_ == ee)
-        cutflow_ee_->Fill(1.,weight);
-    else if (channel_ == mm)
-        cutflow_mm_->Fill(1.,weight);
-
+  cutflow_ee_->Fill(0.,weight);
+  cutflow_mm_->Fill(0.,weight);
+  if (channel_ == ee)
+    cutflow_ee_->Fill(1.,weight);
+  else if (channel_ == mm)
+    cutflow_mm_->Fill(1.,weight);
     //if (!passesLeptonVeto)
     //    return;
 
-    if (channel_ == ee && (std::abs(l1Eta) > 2.4 || std::abs(l2Eta) > 2.4 ))
-        return;
-    else if (channel_ == mm && (std::abs(l1Eta) > 2.5 || std::abs(l2Eta) > 2.5 ))
-        return;
-    if (channel_ == ee)
-        cutflow_ee_->Fill(2,weight);
-    else if (channel_ == mm)
-        cutflow_mm_->Fill(2,weight);
+  if (channel_ == ee && (std::abs(l1Eta) > 2.4 || std::abs(l2Eta) > 2.4 ))
+    return;
+  else if (channel_ == mm && (std::abs(l1Eta) > 2.5 || std::abs(l2Eta) > 2.5 ))
+    return;
+  if (channel_ == ee)
+    cutflow_ee_->Fill(2,weight);
+  else if (channel_ == mm)
+    cutflow_mm_->Fill(2,weight);
+      
+  if (l1Pt < 25 || l2Pt < 20)
+    return;
+  if (channel_ == ee)
+    cutflow_ee_->Fill(3,weight);
+  else if (channel_ == mm)
+    cutflow_mm_->Fill(3,weight);
+  
+  // if ((81.1876 < CombMass) && (CombMass < 101.1876))
+  // return;
+  
+  if (channel_ == ee)
+    cutflow_ee_->Fill(4,weight);
+  else if (channel_ == mm)
+    cutflow_mm_->Fill(4,weight);
+  
+    //  if (MET > 25)
+    //  return;
+  
+  if (channel_ == ee)
+    cutflow_ee_->Fill(5,weight);
+  else if (channel_ == mm)
+    cutflow_mm_->Fill(5,weight);
+  
+  // if (!tightZLeptons())
+  // return;
 
-    if (l1Pt < 25 || l2Pt < 20)
-        return;
-    if (channel_ == ee)
-        cutflow_ee_->Fill(3,weight);
-    else if (channel_ == mm)
-        cutflow_mm_->Fill(3,weight);
+  if (channel_ == ee)
+    cutflow_ee_->Fill(6,weight);
+  else if (channel_ == mm)
+    cutflow_mm_->Fill(6,weight);
 
-    if (ZMass > 101.1876 || ZMass < 81.1876)
-        return;
+  if (channel_ == ee) {
+    CombMass_ee_->Fill(CombMass, weight);
+    ptl1_ee_->Fill(l1Pt, weight);
+    ptl2_ee_->Fill(l2Pt, weight);
+    l1eta_ee_->Fill(l1Eta, weight);
+    l2eta_ee_->Fill(l2Eta, weight);
+    l1phi_ee_->Fill(l1Phi, weight);
+    l2phi_ee_->Fill(l2Phi, weight);
+  
+  }
+  else if (channel_ == mm) {
+    CombMass_mm_->Fill(CombMass, weight);
+    ptl1_mm_->Fill(l1Pt, weight);
+    ptl2_mm_->Fill(l2Pt, weight);
+    l1eta_mm_->Fill(l1Eta, weight);
+    l2eta_mm_->Fill(l2Eta, weight);
+    l1phi_mm_->Fill(l1Phi, weight);
+    l2phi_mm_->Fill(l2Phi, weight);
+   
+  }
+    
+  else
+    throw std::domain_error("Invalid channel!");
 
-    if (channel_ == ee)
-        cutflow_ee_->Fill(4,weight);
-    else if (channel_ == mm)
-        cutflow_mm_->Fill(4,weight);
-
-    if (MET > 25)
-        return;
-
-    if (channel_ == ee)
-        cutflow_ee_->Fill(5,weight);
-    else if (channel_ == mm)
-        cutflow_mm_->Fill(5,weight);
-
-    if (!tightZLeptons())
-        return;
-
-    if (channel_ == ee)
-        cutflow_ee_->Fill(6,weight);
-    else if (channel_ == mm)
-        cutflow_mm_->Fill(6,weight);
-
-    if (channel_ == ee) {
-        ZMass_ee_->Fill(ZMass, weight);
-        ptl1_ee_->Fill(l1Pt, weight);
-        ptl2_ee_->Fill(l2Pt, weight);
-	l1eta_ee_->Fill(l1Eta, weight);
-	l2eta_ee_->Fill(l2Eta, weight);
-	l1phi_ee_->Fill(l1Phi, weight);
-	l2phi_ee_->Fill(l2Phi, weight);
- }
-    else if (channel_ == mm) {
-        ZMass_mm_->Fill(ZMass, weight);
-        ptl1_mm_->Fill(l1Pt, weight);
-        ptl2_mm_->Fill(l2Pt, weight);
-	l1eta_mm_->Fill(l1Eta, weight);
-	l2eta_mm_->Fill(l2Eta, weight);
-	l1phi_mm_->Fill(l1Phi, weight);
-	l2phi_mm_->Fill(l2Phi, weight);
- }
-    else
-        throw std::domain_error("Invalid channel!");
 }
-
-void SameSignLept::SetupNewDirectory() {
+  void SameSignLept::SetupNewDirectory() {
     SelectorBase::SetupNewDirectory();
-
+  
     AddObject<TH1D>(cutflow_ee_, "cutflow_ee", "Tight leptons; Cut flow", 7, 0, 7);
     AddObject<TH1D>(cutflow_mm_, "cutflow_mm", "Tight leptons; Cut flow", 7, 0, 7);
-    AddObject<TH1D>(ZMass_ee_, "ZMass_ee", "Tight leptons; m_{ee} [GeV]", 80, 102, 22);
-    AddObject<TH1D>(ZMass_mm_, "ZMass_mm", "Tight leptons; m_{#mu#mu} [GeV]", 80, 102, 22);
-    AddObject<TH1D>(ptl1_ee_, "ptl1_ee", "Tight leptons; p_{T}(e_{1}) [GeV]", 100, 0, 200);
-    AddObject<TH1D>(ptl1_mm_, "ptl1_mm", "Tight leptons; p_{T}(#mu_{1}) [GeV]", 100, 0, 100);
-    AddObject<TH1D>(ptl2_ee_, "ptl2_ee", "Tight leptons; p_{T}(e_{2}) [GeV]", 100, 0, 200);
-    AddObject<TH1D>(ptl2_mm_, "ptl2_mm", "Tight leptons; p_{T}(#mu_{2}) [GeV]", 100, 0, 100);
+   
+  AddObject<TH1D>(CombMass_ee_, "CombMass_ee", "Tight leptons; m_{ee} [GeV]", 80, 102, 22);
+  AddObject<TH1D>(CombMass_mm_, "CombMass_mm", "Tight leptons; m_{#mu#mu} [GeV]", 80, 102, 22);
+  
+  
+  AddObject<TH1D>(ptl1_ee_, "ptl1_ee", "Tight leptons; p_{T}(e_{1}) [GeV]", 100, 0, 200);
+  AddObject<TH1D>(ptl1_mm_, "ptl1_mm", "Tight leptons; p_{T}(#mu_{1}) [GeV]", 100, 0, 100);
+  AddObject<TH1D>(ptl2_ee_, "ptl2_ee", "Tight leptons; p_{T}(e_{2}) [GeV]", 100, 0, 200);
+  AddObject<TH1D>(ptl2_mm_, "ptl2_mm", "Tight leptons; p_{T}(#mu_{2}) [GeV]", 100, 0, 100);
+    
+  AddObject<TH1D>(l1eta_mm_, "l1eta_mm", "Tight leptons; eta(#mu_{1})", 100, -5, 5);
+  AddObject<TH1D>(l2eta_mm_, "l2eta_mm", "Tight leptons; eta(#mu_{2})", 100, -5, 5);
+  AddObject<TH1D>(l1eta_ee_, "l1eta_ee", "Tight leptons; eta(e_{1})", 100, -5, 5);
+  AddObject<TH1D>(l2eta_ee_, "l2eta_ee", "Tight leptons; eta(e_{2})", 100, -5, 5);
 
-    /*    AddObject<TH1D>(l1eta_mm_, "l1eta_mm", "Tight leptons; eta(#mu_{1})", 100, -5, 5);
-    AddObject<TH1D>(l2eta_mm_, "l2eta_mm", "Tight leptons; eta(#mu_{2})", 100, -5, 5);
-    AddObject<TH1D>(l1eta_ee_, "l1eta_ee", "Tight leptons; eta(e_{1})", 100, -5, 5);
-    AddObject<TH1D>(l2eta_ee_, "l2eta_ee", "Tight leptons; eta(e_{2})", 100, -5, 5);
-
-    AddObject<TH1D>(l1phi_mm_, "l1phi_mm", "Tight leptons; #phi(#mu_{1})", 100, -20, 20);
-    AddObject<TH1D>(l2phi_mm_, "l2phi_mm", "Tight leptons; phi(#mu_{2})", 100, -20, 20);
-    AddObject<TH1D>(l1phi_ee_, "l1phi_ee", "Tight leptons; phi(e_{1})", 100, -20, 20);
-    AddObject<TH1D>(l2phi_ee_, "l2phi_ee", "Tight leptons; phi(e_{2})", 100, -20, 20);
-    */
-} 
+  AddObject<TH1D>(l1phi_mm_, "l1phi_mm", "Tight leptons; #phi(#mu_{1})", 100, -20, 20);
+  AddObject<TH1D>(l2phi_mm_, "l2phi_mm", "Tight leptons; phi(#mu_{2})", 100, -20, 20);
+  AddObject<TH1D>(l1phi_ee_, "l1phi_ee", "Tight leptons; phi(e_{1})", 100, -20, 20);
+  AddObject<TH1D>(l2phi_ee_, "l2phi_ee", "Tight leptons; phi(e_{2})", 100, -20, 20);
+   
+  } 
 
