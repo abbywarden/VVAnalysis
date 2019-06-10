@@ -45,7 +45,7 @@ public :
     Float_t l2Phi;
     Float_t l1Mass;
     Float_t l2Mass;
-    Float_t ZMass;
+    Float_t jetMass;
     Float_t CombMass;
     Bool_t l1IsTight;
     Bool_t l2IsTight;
@@ -55,11 +55,10 @@ public :
     // Values read from file
     Float_t genWeight;
     Float_t MET;
-    Float_t Jet_mass;
-    Float_t Jet_btagCSVV2;
-    Float_t Jet_pt;
     Float_t type1_pfMETPhi;
+
     static const unsigned int N_KEEP_MU_E_ = 15;
+    static const unsigned int N_KEEP_JET = 15;
     UInt_t nElectron;
     UInt_t nMuon;
     UInt_t nJet;
@@ -67,6 +66,9 @@ public :
     Float_t Electron_eta[N_KEEP_MU_E_];
     Float_t Electron_phi[N_KEEP_MU_E_];
     Float_t Electron_mass[N_KEEP_MU_E_];
+    Float_t Jet_mass[N_KEEP_JET];
+    Float_t Jet_btagCSVV2[N_KEEP_JET];
+    Float_t Jet_pt[N_KEEP_JET];  
     Float_t Muon_pt[N_KEEP_MU_E_];
     Float_t Muon_eta[N_KEEP_MU_E_];
     Float_t Muon_phi[N_KEEP_MU_E_];
@@ -123,7 +125,7 @@ public :
     TH1D* l2phi_mm_;
     TH1D* l1phi_ee_;
     TH1D* l2phi_ee_;
-   
+    TH1D* cutflow_jets_;
     // Readers to access the data (delete the ones you do not need).
     //virtual void    SetScaleFactors() override;
     virtual void    Init(TTree *tree) override;

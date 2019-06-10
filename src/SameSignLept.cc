@@ -4,6 +4,7 @@
 #include <TStyle.h>
 #include <regex>
 #include "TParameter.h"
+using std::endl;
 
 void SameSignLept::Init(TTree *tree)
 {
@@ -91,7 +92,15 @@ void SameSignLept::LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std
         message += "\nExiting because this can cause problems. Increase N_KEEP_MU_E_ to avoid this error.\n";
         throw std::domain_error(message);
     }
-
+    /*    else if (nJet > N_KEEP_JET) {
+      std::string message = "Found more jets  than max read number.\n    Found ";
+      message += std::to_string(nJet);
+      message += " jets.\n    --> Max read number was ";
+      message += std::to_string(N_KEEP_JET);
+      message += "\nExiting because this can cause problems. Increase N_KEEP_JET to avoid this error.\n";
+      throw std::domain_error(message); 
+    }
+    */
     CombMass = 0;
     l1Pt = 0;
     l2Pt = 0;
@@ -101,7 +110,8 @@ void SameSignLept::LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std
     l2Phi = 0;
     l1Mass = 0;
     l2Mass = 0;
-
+    jetMass = 0;
+    
     
     // cut-based ID Fall17 V2 (0:fail, 1:veto, 2:loose, 3:medium, 4:tight)
    
@@ -112,11 +122,13 @@ void SameSignLept::LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std
     //nTightIsoMuon = std::count(Muon_pfIsoId, Muon_pfIsoId+nMuon, 4);
     //nLooseIsoMuon = std::count(Muon_pfIsoId, Muon_pfIsoId+nMuon, 1);
    
-    // originally tight muon...let's try medium
+    // originally tight muon...let's try medium -- need to understand this section better
     channel_ = channelMap_[channelName_];
     std::vector<size_t> goodIndices = {};
+
     if (nMediumIdMuon >= 2) {
         channel_ = mm;
+
         if (!(Muon_mediumId[0] && Muon_mediumId[1])) {
             for (size_t i = 0; i < nMuon; i++) {
                 if (Muon_mediumId[i])
@@ -142,13 +154,13 @@ void SameSignLept::LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std
             l2Mass = Muon_mass[goodIndices[1]];
             l1IsMed = (Muon_mediumId[goodIndices[0]] && (Muon_pfRelIso04_all[goodIndices[0]] < 0.15));
             l2IsMed = (Muon_mediumId[goodIndices[1]] && (Muon_pfRelIso04_all[goodIndices[1]] < 0.15));
-	    //	    if (nJet >= 5) {
-	    //std::cout<<"*************Found 5 or more jets in mm channel****************";
-	    // }
+	   
 	}
     }
     else if (nCBVIDTightElec >= 2) {
         channel_ = ee;
+	//	std::cout << "Number of jets found in ee channel:"<<nJet<<endl;
+        
         if (!(Electron_cutBased[0] == 4 && Electron_cutBased[1] == 4)) {
             for (size_t i = 0; i < nElectron; i++) {
                 if (Electron_cutBased[i] == 4)
@@ -171,9 +183,6 @@ void SameSignLept::LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std
             l2Mass = Electron_mass[goodIndices[1]];
             l1IsTight = (Electron_cutBased[goodIndices[0]] == 4);
             l2IsTight = (Electron_cutBased[goodIndices[1]] == 4);
-	    // if (nJet >= 5) {
-	    //std::cout<<"*********Found 5 or more jets in ee channel**************";
-	    // }
 	}
     }
     SetMass();
@@ -201,6 +210,7 @@ void SameSignLept::LoadBranchesUWVV(Long64_t entry, std::pair<Systematic, std::s
   throw std::domain_error("UWVV ntuples not defined for Z selector!");
 
 }
+//understand this part better
 void SameSignLept::ApplyScaleFactors() {
   weight = genWeight;
   if (channel_ == ee) {
@@ -276,6 +286,10 @@ bool SameSignLept::medZLeptons() {
 }
     */
 void SameSignLept::FillHistograms(Long64_t entry, std::pair<Systematic, std::string> variation) { 
+  for (size_t i=0; i<20; i++) {
+    cutflow_jets_->Fill(i);
+  }
+  
   cutflow_ee_->Fill(0.,weight);
   cutflow_mm_->Fill(0.,weight);
   if (channel_ == ee)
@@ -355,25 +369,26 @@ void SameSignLept::FillHistograms(Long64_t entry, std::pair<Systematic, std::str
   
     AddObject<TH1D>(cutflow_ee_, "cutflow_ee", "Tight leptons; Cut flow", 7, 0, 7);
     AddObject<TH1D>(cutflow_mm_, "cutflow_mm", "Tight leptons; Cut flow", 7, 0, 7);
-   
-  AddObject<TH1D>(CombMass_ee_, "CombMass_ee", "Tight leptons; m_{ee} [GeV]", 80, 102, 22);
-  AddObject<TH1D>(CombMass_mm_, "CombMass_mm", "Tight leptons; m_{#mu#mu} [GeV]", 80, 102, 22);
-  
-  
-  AddObject<TH1D>(ptl1_ee_, "ptl1_ee", "Tight leptons; p_{T}(e_{1}) [GeV]", 100, 0, 200);
-  AddObject<TH1D>(ptl1_mm_, "ptl1_mm", "Tight leptons; p_{T}(#mu_{1}) [GeV]", 100, 0, 100);
-  AddObject<TH1D>(ptl2_ee_, "ptl2_ee", "Tight leptons; p_{T}(e_{2}) [GeV]", 100, 0, 200);
-  AddObject<TH1D>(ptl2_mm_, "ptl2_mm", "Tight leptons; p_{T}(#mu_{2}) [GeV]", 100, 0, 100);
     
-  AddObject<TH1D>(l1eta_mm_, "l1eta_mm", "Tight leptons; eta(#mu_{1})", 100, -5, 5);
-  AddObject<TH1D>(l2eta_mm_, "l2eta_mm", "Tight leptons; eta(#mu_{2})", 100, -5, 5);
-  AddObject<TH1D>(l1eta_ee_, "l1eta_ee", "Tight leptons; eta(e_{1})", 100, -5, 5);
-  AddObject<TH1D>(l2eta_ee_, "l2eta_ee", "Tight leptons; eta(e_{2})", 100, -5, 5);
+    AddObject<TH1D>(CombMass_ee_, "CombMass_ee", "Tight leptons; m_{ee} [GeV]", 80, 102, 22);
+    AddObject<TH1D>(CombMass_mm_, "CombMass_mm", "Tight leptons; m_{#mu#mu} [GeV]", 80, 102, 22);
+  
+  
+    AddObject<TH1D>(ptl1_ee_, "ptl1_ee", "Tight leptons; p_{T}(e_{1}) [GeV]", 100, 0, 200);
+    AddObject<TH1D>(ptl1_mm_, "ptl1_mm", "Tight leptons; p_{T}(#mu_{1}) [GeV]", 100, 0, 100);
+    AddObject<TH1D>(ptl2_ee_, "ptl2_ee", "Tight leptons; p_{T}(e_{2}) [GeV]", 100, 0, 200);
+    AddObject<TH1D>(ptl2_mm_, "ptl2_mm", "Tight leptons; p_{T}(#mu_{2}) [GeV]", 100, 0, 100);
+    
+    AddObject<TH1D>(l1eta_mm_, "l1eta_mm", "Tight leptons; eta(#mu_{1})", 100, -5, 5);
+    AddObject<TH1D>(l2eta_mm_, "l2eta_mm", "Tight leptons; eta(#mu_{2})", 100, -5, 5);
+    AddObject<TH1D>(l1eta_ee_, "l1eta_ee", "Tight leptons; eta(e_{1})", 100, -5, 5);
+    AddObject<TH1D>(l2eta_ee_, "l2eta_ee", "Tight leptons; eta(e_{2})", 100, -5, 5);
 
-  AddObject<TH1D>(l1phi_mm_, "l1phi_mm", "Tight leptons; #phi(#mu_{1})", 100, -20, 20);
-  AddObject<TH1D>(l2phi_mm_, "l2phi_mm", "Tight leptons; phi(#mu_{2})", 100, -20, 20);
-  AddObject<TH1D>(l1phi_ee_, "l1phi_ee", "Tight leptons; phi(e_{1})", 100, -20, 20);
-  AddObject<TH1D>(l2phi_ee_, "l2phi_ee", "Tight leptons; phi(e_{2})", 100, -20, 20);
+    AddObject<TH1D>(l1phi_mm_, "l1phi_mm", "Tight leptons; #phi(#mu_{1})", 100, -20, 20);
+    AddObject<TH1D>(l2phi_mm_, "l2phi_mm", "Tight leptons; phi(#mu_{2})", 100, -20, 20);
+    AddObject<TH1D>(l1phi_ee_, "l1phi_ee", "Tight leptons; phi(e_{1})", 100, -20, 20);
+    AddObject<TH1D>(l2phi_ee_, "l2phi_ee", "Tight leptons; phi(e_{2})", 100, -20, 20);
    
+    AddObject<TH1D>(cutflow_jets_, "cutflow_jets", "Jets; Cut flow", 35, 0, 20);
   } 
 
