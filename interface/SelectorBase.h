@@ -30,6 +30,8 @@ public :
     enum Channel {
         ee,
         mm,
+	em,
+	me,
         eee,
         eem,
         emm,
@@ -83,6 +85,8 @@ public :
 
     std::map<std::string, Channel> channelMap_ = {
         {"ee", ee},
+	{"em", em},
+	{"me", em},
         {"mm", mm},
         {"eee", eee},
         {"eem", eem},

@@ -48,7 +48,7 @@ void SameSignLept::SetBranchesNanoAOD() {
     fChain->SetBranchAddress("Jet_pt", &Jet_pt, &b_Jet_pt);
     fChain->SetBranchAddress("Jet_mass", &Jet_mass, &b_Jet_mass);
     fChain->SetBranchAddress("Jet_btagCSVV2", &Jet_btagCSVV2, &b_Jet_btagCSVV2);
-   
+    fChain->SetBranchAddress("Jet_eta", &Jet_eta, &b_Jet_eta);
 
 
     if (isMC_) {
@@ -80,7 +80,7 @@ void SameSignLept::LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std
     b_Jet_pt->GetEntry(entry);
     b_Jet_mass->GetEntry(entry);
     b_Jet_btagCSVV2->GetEntry(entry);
-  
+    b_Jet_eta->GetEntry(entry);
  
     if (nElectron > N_KEEP_MU_E_ || nMuon > N_KEEP_MU_E_) {
         std::string message = "Found more electrons or muons than max read number.\n    Found ";
@@ -92,7 +92,7 @@ void SameSignLept::LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std
         message += "\nExiting because this can cause problems. Increase N_KEEP_MU_E_ to avoid this error.\n";
         throw std::domain_error(message);
     }
-    /*    else if (nJet > N_KEEP_JET) {
+    else if (nJet > N_KEEP_JET) {
       std::string message = "Found more jets  than max read number.\n    Found ";
       message += std::to_string(nJet);
       message += " jets.\n    --> Max read number was ";
@@ -100,7 +100,8 @@ void SameSignLept::LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std
       message += "\nExiting because this can cause problems. Increase N_KEEP_JET to avoid this error.\n";
       throw std::domain_error(message); 
     }
-    */
+    
+
     CombMass = 0;
     l1Pt = 0;
     l2Pt = 0;
@@ -122,69 +123,130 @@ void SameSignLept::LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std
     //nTightIsoMuon = std::count(Muon_pfIsoId, Muon_pfIsoId+nMuon, 4);
     //nLooseIsoMuon = std::count(Muon_pfIsoId, Muon_pfIsoId+nMuon, 1);
    
-    // originally tight muon...let's try medium -- need to understand this section better
+    // addition of Ht variable
+    for (size_t i =0; i<N_KEEP_JET; i++) {
+      if (Jet_pt[i] > 40) {
+	if (std::abs(Jet_eta[i]) < 2.4) { 
+	// any other cuts go here....would this be the place to 
+	// say if a lepton is nearby?? 
+	    goodJet[i] = Jet_pt[i];
+	  }
+      }  
+      else
+	goodJet[i]=0;
+    }
+    
+    Ht = 0;
+    ngoodJet = 0;
+    for (auto& num : goodJet) {
+      Ht += num;  
+      if (num != 0) 
+	ngoodJet += 1; 
+    }
+
+    nbJet =0;
+    for (size_t id =0; id <N_KEEP_JET; id++) {
+      if (Jet_btagCSVV2[id] > 0.8) {
+	if (Jet_pt[id] > 25) { 
+	  if (std:: abs(Jet_eta[id]) <2.4) { 
+	// any other cuts?? 
+	    nbJet += 1; 
+	  }
+	} 
+      }
+    }
+
+
     channel_ = channelMap_[channelName_];
     std::vector<size_t> goodIndices = {};
 
-    if (nMediumIdMuon >= 2) {
-        channel_ = mm;
+    if (nMediumIdMuon == 2) {
+      channel_=mm;
+      if( Muon_mediumId[0] && Muon_mediumId[1]) {
+	for (size_t i=0; i<nMuon; i++) {
+	  if (Muon_mediumId[i]) 
+	    goodIndices.push_back(i);
+	}
+	if (Muon_pt[goodIndices[1]]>Muon_pt[goodIndices[0]]) {
+	    std::reverse(goodIndices.begin(), goodIndices.end());
+	  }
+	if (Muon_charge[goodIndices[0]] == Muon_charge[goodIndices[1]]) {
+	  l1Pt = Muon_pt[goodIndices[0]];
+	  l2Pt = Muon_pt[goodIndices[1]];
+	  l1Eta = Muon_eta[goodIndices[0]];
+	  l2Eta = Muon_eta[goodIndices[1]];
+	  l1Phi = Muon_phi[goodIndices[0]];
+	  l2Phi = Muon_phi[goodIndices[1]];
+	  l1Mass = Muon_mass[goodIndices[0]];
+	  l2Mass = Muon_mass[goodIndices[1]];
+	  l1IsMed = (Muon_mediumId[goodIndices[0]] && (Muon_pfRelIso04_all[goodIndices[0]] < 0.15));
+	  l2IsMed = (Muon_mediumId[goodIndices[1]] && (Muon_pfRelIso04_all[goodIndices[1]] < 0.15));
+	}
+      }
+    }
+    else if (nCBVIDTightElec == 2) {
+      channel_ = ee;
+      if( Electron_cutBased[0]==4 && Electron_cutBased[1]==4) {
+	for (size_t i=0; i<nElectron; i++) {
+	  if (Electron_cutBased[i]==4) 
+	    goodIndices.push_back(i);
+	}
+	if (Electron_pt[goodIndices[1]]>Electron_pt[goodIndices[0]]) {
+	    std::reverse(goodIndices.begin(), goodIndices.end());
+	  }
 
-        if (!(Muon_mediumId[0] && Muon_mediumId[1])) {
-            for (size_t i = 0; i < nMuon; i++) {
-                if (Muon_mediumId[i])
-                    goodIndices.push_back(i);
-            }
-            if (goodIndices.size() < 2) {
-                return;
-            }
-        }
-        else 
-            goodIndices = {0, 1};
-	// want same sign so changing from != to ==........
-	// additionally changing tight to medium....
-	// need to make sure we are calling mediumId elsewhere for muons
-        if (Muon_charge[goodIndices[0]] == Muon_charge[goodIndices[1]]) {
-            l1Pt = Muon_pt[goodIndices[0]];
-            l2Pt = Muon_pt[goodIndices[1]];
-            l1Eta = Muon_eta[goodIndices[0]];
-            l2Eta = Muon_eta[goodIndices[1]];
-            l1Phi = Muon_phi[goodIndices[0]];
-            l2Phi = Muon_phi[goodIndices[1]];
-            l1Mass = Muon_mass[goodIndices[0]];
-            l2Mass = Muon_mass[goodIndices[1]];
-            l1IsMed = (Muon_mediumId[goodIndices[0]] && (Muon_pfRelIso04_all[goodIndices[0]] < 0.15));
-            l2IsMed = (Muon_mediumId[goodIndices[1]] && (Muon_pfRelIso04_all[goodIndices[1]] < 0.15));
-	   
+	if (Electron_charge[goodIndices[0]] == Electron_charge[goodIndices[1]]) {
+	l1Pt = Electron_pt[goodIndices[0]];
+	l2Pt = Electron_pt[goodIndices[1]];
+	l1Eta = Electron_eta[goodIndices[0]];
+	l2Eta = Electron_eta[goodIndices[1]];
+	l1Phi = Electron_phi[goodIndices[0]];
+	l2Phi = Electron_phi[goodIndices[1]];
+	l1Mass = Electron_mass[goodIndices[0]];
+	l2Mass = Electron_mass[goodIndices[1]];
+	l1IsTight = (Electron_cutBased[goodIndices[0]] == 4);
+	l2IsTight = (Electron_cutBased[goodIndices[1]] == 4);
+
 	}
+      }
     }
-    else if (nCBVIDTightElec >= 2) {
-        channel_ = ee;
-	//	std::cout << "Number of jets found in ee channel:"<<nJet<<endl;
-        
-        if (!(Electron_cutBased[0] == 4 && Electron_cutBased[1] == 4)) {
-            for (size_t i = 0; i < nElectron; i++) {
-                if (Electron_cutBased[i] == 4)
-                    goodIndices.push_back(i);
-            }
-            if (goodIndices.size() < 2)
-                return;
-        }
-        else 
-            goodIndices = {0, 1};
-	// wanting same charge. changing to ==
-        if (Electron_charge[goodIndices[0]] == Electron_charge[goodIndices[1]]) {
-            l1Pt = Electron_pt[goodIndices[0]];
-            l2Pt = Electron_pt[goodIndices[1]];
-            l1Eta = Electron_eta[goodIndices[0]];
-            l2Eta = Electron_eta[goodIndices[1]];
-            l1Phi = Electron_phi[goodIndices[0]];
-            l2Phi = Electron_phi[goodIndices[1]];
-            l1Mass = Electron_mass[goodIndices[0]];
-            l2Mass = Electron_mass[goodIndices[1]];
-            l1IsTight = (Electron_cutBased[goodIndices[0]] == 4);
-            l2IsTight = (Electron_cutBased[goodIndices[1]] == 4);
+
+ 
+    else if ((nCBVIDTightElec == nMediumIdMuon) == 1) {
+      if (Electron_cutBased[0] == 4 && Muon_mediumId[0]) {
+	for (size_t i=0; i<nElectron; i++) {
+	  if (Electron_cutBased[0]==4) {
+	    goodIndices.push_back(i);
+	  }
 	}
-    }
+	for (size_t i=0; i<nMuon; i++) {
+	  if (Muon_mediumId[i]) {
+	    goodIndices.push_back(i);
+	  }
+	}
+	if (Muon_pt[goodIndices[1]] > Electron_pt[goodIndices[0]] ) {
+	  channel_= me;
+	  std::reverse(goodIndices.begin(), goodIndices.end());
+	}
+
+	else if (Electron_pt[goodIndices[0]] > Muon_pt[goodIndices[1]]) {
+	  channel_ = em;
+	}
+	if (Electron_charge[goodIndices[0]] == Muon_charge[goodIndices[1]]) {
+	  l1Pt = Electron_pt[goodIndices[0]];
+	  l2Pt = Muon_pt[goodIndices[1]];
+	  l1Eta = Electron_eta[goodIndices[0]];
+	  l2Eta = Muon_eta[goodIndices[1]];
+	  l1Phi = Electron_phi[goodIndices[0]];
+	  l2Phi = Muon_phi[goodIndices[1]];
+	  l1Mass = Electron_mass[goodIndices[0]];
+	  l2Mass = Muon_mass[goodIndices[1]];
+	  l1IsTight = (Electron_cutBased[goodIndices[0]] == 4);
+	  l2IsMed = (Muon_mediumId[goodIndices[1]] && (Muon_pfRelIso04_all[goodIndices[1]] < 0.15) );
+	}
+      }
+    } 
+    
     SetMass();
 
     if (isMC_) {
@@ -286,13 +348,11 @@ bool SameSignLept::medZLeptons() {
 }
     */
 void SameSignLept::FillHistograms(Long64_t entry, std::pair<Systematic, std::string> variation) { 
-  for (size_t i=0; i<20; i++) {
-    cutflow_jets_->Fill(i);
-  }
-  
+  //once we get em channel set up, need to include the cutflow_em_ 
+  // for now, just doing ee and mm channel 
   cutflow_ee_->Fill(0.,weight);
   cutflow_mm_->Fill(0.,weight);
-  if (channel_ == ee)
+  if (channel_ == ee) 
     cutflow_ee_->Fill(1.,weight);
   else if (channel_ == mm)
     cutflow_mm_->Fill(1.,weight);
@@ -307,13 +367,15 @@ void SameSignLept::FillHistograms(Long64_t entry, std::pair<Systematic, std::str
     cutflow_ee_->Fill(2,weight);
   else if (channel_ == mm)
     cutflow_mm_->Fill(2,weight);
-      
+  
   if (l1Pt < 25 || l2Pt < 20)
     return;
+
   if (channel_ == ee)
     cutflow_ee_->Fill(3,weight);
   else if (channel_ == mm)
     cutflow_mm_->Fill(3,weight);
+
   
   // if ((81.1876 < CombMass) && (CombMass < 101.1876))
   // return;
@@ -323,14 +385,16 @@ void SameSignLept::FillHistograms(Long64_t entry, std::pair<Systematic, std::str
   else if (channel_ == mm)
     cutflow_mm_->Fill(4,weight);
   
-    //  if (MET > 25)
-    //  return;
-  
+  if (MET < 50)
+    return;
+
   if (channel_ == ee)
     cutflow_ee_->Fill(5,weight);
   else if (channel_ == mm)
     cutflow_mm_->Fill(5,weight);
-  
+
+  if (Ht < 300)
+    return;
   // if (!tightZLeptons())
   // return;
 
@@ -347,7 +411,7 @@ void SameSignLept::FillHistograms(Long64_t entry, std::pair<Systematic, std::str
     l2eta_ee_->Fill(l2Eta, weight);
     l1phi_ee_->Fill(l1Phi, weight);
     l2phi_ee_->Fill(l2Phi, weight);
-  
+
   }
   else if (channel_ == mm) {
     CombMass_mm_->Fill(CombMass, weight);
@@ -359,10 +423,24 @@ void SameSignLept::FillHistograms(Long64_t entry, std::pair<Systematic, std::str
     l2phi_mm_->Fill(l2Phi, weight);
    
   }
+  // else if (channel_ == em) {
     
+  
   else
     throw std::domain_error("Invalid channel!");
 
+
+  
+  if (nMuon + nElectron ==2) {
+    if (nbJet ==2) {
+      if (ngoodJet ==6) 
+	SR_uw->Fill(0.,weight);
+      else if (ngoodJet ==7)
+	SR_uw->Fill(1.,weight);
+      else if (ngoodJet >= 8)
+	SR_uw->Fill(2.,weight);
+    }
+  }
 }
   void SameSignLept::SetupNewDirectory() {
     SelectorBase::SetupNewDirectory();
@@ -389,6 +467,6 @@ void SameSignLept::FillHistograms(Long64_t entry, std::pair<Systematic, std::str
     AddObject<TH1D>(l1phi_ee_, "l1phi_ee", "Tight leptons; phi(e_{1})", 100, -20, 20);
     AddObject<TH1D>(l2phi_ee_, "l2phi_ee", "Tight leptons; phi(e_{2})", 100, -20, 20);
    
-    AddObject<TH1D>(cutflow_jets_, "cutflow_jets", "Jets; Cut flow", 35, 0, 20);
+    AddObject<TH1D>(SR_uw, "nEvents", "Signal Regions; idk", 3, 0, 3);
   } 
 

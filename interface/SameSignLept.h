@@ -58,10 +58,14 @@ public :
     Float_t type1_pfMETPhi;
 
     static const unsigned int N_KEEP_MU_E_ = 15;
-    static const unsigned int N_KEEP_JET = 15;
+     static const unsigned int N_KEEP_JET = 35;
     UInt_t nElectron;
     UInt_t nMuon;
     UInt_t nJet;
+    UInt_t nbJet;
+    UInt_t ngoodJet;
+    Float_t Ht;
+    Float_t goodJet[N_KEEP_JET];
     Float_t Electron_pt[N_KEEP_MU_E_];
     Float_t Electron_eta[N_KEEP_MU_E_];
     Float_t Electron_phi[N_KEEP_MU_E_];
@@ -69,6 +73,7 @@ public :
     Float_t Jet_mass[N_KEEP_JET];
     Float_t Jet_btagCSVV2[N_KEEP_JET];
     Float_t Jet_pt[N_KEEP_JET];  
+    Float_t Jet_eta[N_KEEP_JET];
     Float_t Muon_pt[N_KEEP_MU_E_];
     Float_t Muon_eta[N_KEEP_MU_E_];
     Float_t Muon_phi[N_KEEP_MU_E_];
@@ -107,6 +112,7 @@ public :
     TBranch* b_Jet_pt;
     TBranch* b_Jet_mass;
     TBranch* b_Jet_btagCSVV2;
+    TBranch* b_Jet_eta;
 
     // Histograms
     TH1D* cutflow_ee_;
@@ -125,7 +131,7 @@ public :
     TH1D* l2phi_mm_;
     TH1D* l1phi_ee_;
     TH1D* l2phi_ee_;
-    TH1D* cutflow_jets_;
+    TH1D* SR_uw;
     // Readers to access the data (delete the ones you do not need).
     //virtual void    SetScaleFactors() override;
     virtual void    Init(TTree *tree) override;
