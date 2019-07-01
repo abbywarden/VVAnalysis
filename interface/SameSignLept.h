@@ -31,6 +31,7 @@ public :
     bool passesLeptonVeto;
     UInt_t nCBVIDTightElec;
     UInt_t nCBVIDVetoElec;
+    UInt_t nMVAElec;
     UInt_t nTightIdMuon;
     UInt_t nMediumIdMuon;
     UInt_t nTightIsoMuon;
@@ -39,10 +40,13 @@ public :
     Float_t l1Eta;
     Float_t l2Eta;
     Float_t l3Eta;
+    Float_t jetEta;
     Float_t l1Pt;
     Float_t l2Pt;
+    Float_t jetPt;
     Float_t l1Phi;
     Float_t l2Phi;
+    Float_t jetPhi;
     Float_t l1Mass;
     Float_t l2Mass;
     Float_t jetMass;
@@ -63,6 +67,7 @@ public :
     UInt_t nMuon;
     UInt_t nJet;
     UInt_t nbJet;
+    UInt_t ndeepbJet;
     UInt_t ngoodJet;
     Float_t Ht;
     Float_t goodJet[N_KEEP_JET];
@@ -72,6 +77,7 @@ public :
     Float_t Electron_mass[N_KEEP_MU_E_];
     Float_t Jet_mass[N_KEEP_JET];
     Float_t Jet_btagCSVV2[N_KEEP_JET];
+    Float_t Jet_btagDeepB[N_KEEP_JET];
     Float_t Jet_pt[N_KEEP_JET];  
     Float_t Jet_eta[N_KEEP_JET];
     Float_t Muon_pt[N_KEEP_MU_E_];
@@ -79,6 +85,7 @@ public :
     Float_t Muon_phi[N_KEEP_MU_E_];
     Float_t Muon_mass[N_KEEP_MU_E_];
     Int_t Electron_cutBased[N_KEEP_MU_E_];
+    Int_t Electron_mvaFall17V2Iso[N_KEEP_MU_E_];
     Int_t Electron_charge[N_KEEP_MU_E_];
     Int_t Muon_charge[N_KEEP_MU_E_];
     Bool_t Muon_tightId[N_KEEP_MU_E_];
@@ -101,6 +108,7 @@ public :
     TBranch* b_Muon_phi;
     TBranch* b_Muon_mass;
     TBranch* b_Electron_cutBased;
+    TBranch* b_Electron_mvaFall17V2Iso;
     TBranch* b_Electron_charge;
     TBranch* b_Muon_charge;
     TBranch* b_Muon_tightId;
@@ -112,13 +120,18 @@ public :
     TBranch* b_Jet_pt;
     TBranch* b_Jet_mass;
     TBranch* b_Jet_btagCSVV2;
+    TBranch* b_Jet_btagDeepB;
     TBranch* b_Jet_eta;
 
     // Histograms
     TH1D* cutflow_ee_;
     TH1D* cutflow_mm_;
+    TH1D* cutflow_em_;
+    TH1D* cutflow_me_;
     TH1D* CombMass_ee_;
     TH1D* CombMass_mm_;
+    TH1D* CombMass_em_;
+    TH1D* CombMass_me_;
     TH1D* ptl1_ee_; 
     TH1D* ptl1_mm_; 
     TH1D* ptl2_ee_; 
@@ -132,6 +145,24 @@ public :
     TH1D* l1phi_ee_;
     TH1D* l2phi_ee_;
     TH1D* SR_uw;
+    TH1D* elect_pt;
+    TH1D* muon_pt;
+    TH1D* elect_mass;
+    TH1D* muon_mass;
+    TH1D* elect_phi;
+    TH1D* muon_phi;
+    TH1D* elect_eta;
+    TH1D* muon_eta;
+    TH1D* jet_pt;
+    TH1D* jet_mass;
+    TH1D* jet_eta;
+    TH1D* n_bjet_;
+    TH1D* n_deepbjet_;
+    TH1D* n_cut_elec;
+    TH1D* n_mva_elec;
+    
+    //    TH1D* jet_phi;
+
     // Readers to access the data (delete the ones you do not need).
     //virtual void    SetScaleFactors() override;
     virtual void    Init(TTree *tree) override;
