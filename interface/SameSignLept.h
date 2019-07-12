@@ -1,4 +1,3 @@
-
 #ifndef SameSignLept_h
 #define SameSignLept_h
 
@@ -15,181 +14,215 @@
 #include <vector>
 #include "Analysis/VVAnalysis/interface/ScaleFactor.h"
 #include "Analysis/VVAnalysis/interface/SelectorBase.h"
+#include "Analysis/VVAnalysis/interface/BranchManager.h" 
+#include "Analysis/VVAnalysis/interface/GoodParticle.h" 
+
+typedef ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double>>LorentzVector;
 
 class SameSignLept : public SelectorBase {
-public :
-    ScaleFactor* pileupSF_;
-    ScaleFactor* muonSF_;
-    ScaleFactor* eIdSF_ ;
-    ScaleFactor* eGsfSF_;
-    ScaleFactor* mIdSF_;
-    ScaleFactor* mIsoSF_;
+ public :
+  ScaleFactor* pileupSF_;
+  ScaleFactor* muonSF_;
+  ScaleFactor* eIdSF_ ;
+  ScaleFactor* eGsfSF_;
+  ScaleFactor* mIdSF_;
+  ScaleFactor* mIsoSF_;
 
-    bool  returning_value;
+  /*
+  bool  returning_value;
 
-    // Derived values
-    bool passesLeptonVeto;
-    UInt_t nCBVIDTightElec;
-    UInt_t nCBVIDVetoElec;
-    UInt_t nMVAElec;
-    UInt_t nTightIdMuon;
-    UInt_t nMediumIdMuon;
-    UInt_t nTightIsoMuon;
-    UInt_t nLooseIsoMuon;
-    Float_t weight;
-    Float_t l1Eta;
-    Float_t l2Eta;
-    Float_t l3Eta;
-    Float_t jetEta;
-    Float_t l1Pt;
-    Float_t l2Pt;
-    Float_t jetPt;
-    Float_t l1Phi;
-    Float_t l2Phi;
-    Float_t jetPhi;
-    Float_t l1Mass;
-    Float_t l2Mass;
-    Float_t jetMass;
-    Float_t CombMass;
-    Bool_t l1IsTight;
-    Bool_t l2IsTight;
-    Bool_t l1IsMed;
-    Bool_t l2IsMed;
+  // Derived values
+  bool passesLeptonVeto;
+  UInt_t nCBVIDTightElec;
+  UInt_t nCBVIDVetoElec;
+  UInt_t nMVAElec;
+  UInt_t nTightIdMuon;
+  UInt_t nMediumIdMuon;
+  UInt_t nTightIsoMuon;
+  UInt_t nLooseIsoMuon;
+  Float_t weight;
+  Float_t l1Eta;
+  Float_t l2Eta;
+  Float_t l3Eta;
+  Float_t jetEta;
+  Float_t l1Pt;
+  Float_t l2Pt;
+  Float_t jetPt;
+  Float_t l1Phi;
+  Float_t l2Phi;
+  Float_t jetPhi;
+  Float_t l1Mass;
+  Float_t l2Mass;
+  Float_t jetMass;
+  Float_t CombMass;
+  Bool_t l1IsTight;
+  Bool_t l2IsTight;
+  Bool_t l1IsMed;
+  Bool_t l2IsMed;
+  */
+  // Values read from file
+  Float_t genWeight;
+  Float_t MET;
+  Float_t type1_pfMETPhi;
 
-    // Values read from file
-    Float_t genWeight;
-    Float_t MET;
-    Float_t type1_pfMETPhi;
-
-    static const unsigned int N_KEEP_MU_E_ = 15;
-     static const unsigned int N_KEEP_JET = 35;
-    UInt_t nElectron;
-    UInt_t nMuon;
-    UInt_t nJet;
-    UInt_t nbJet;
-    UInt_t ndeepbJet;
-    UInt_t ngoodJet;
-    Float_t Ht;
-    Float_t goodJet[N_KEEP_JET];
-    Float_t Electron_pt[N_KEEP_MU_E_];
-    Float_t Electron_eta[N_KEEP_MU_E_];
-    Float_t Electron_phi[N_KEEP_MU_E_];
-    Float_t Electron_mass[N_KEEP_MU_E_];
-    Float_t Jet_mass[N_KEEP_JET];
-    Float_t Jet_btagCSVV2[N_KEEP_JET];
-    Float_t Jet_btagDeepB[N_KEEP_JET];
-    Float_t Jet_pt[N_KEEP_JET];  
-    Float_t Jet_eta[N_KEEP_JET];
-    Float_t Muon_pt[N_KEEP_MU_E_];
-    Float_t Muon_eta[N_KEEP_MU_E_];
-    Float_t Muon_phi[N_KEEP_MU_E_];
-    Float_t Muon_mass[N_KEEP_MU_E_];
-    Int_t Electron_cutBased[N_KEEP_MU_E_];
-    Int_t Electron_mvaFall17V2Iso[N_KEEP_MU_E_];
-    Int_t Electron_charge[N_KEEP_MU_E_];
-    Int_t Muon_charge[N_KEEP_MU_E_];
-    Bool_t Muon_tightId[N_KEEP_MU_E_];
-    Bool_t Muon_mediumId[N_KEEP_MU_E_];
-    UChar_t Muon_pfIsoId[N_KEEP_MU_E_];
-    Float_t Muon_pfRelIso04_all[N_KEEP_MU_E_];
-    Int_t numPU;
-    
-    TBranch* b_genWeight;
-    TBranch* b_MET;
-    TBranch* b_type1_pfMETPhi;
-    TBranch* b_nElectron;
-    TBranch* b_nMuon;
-    TBranch* b_Electron_pt;
-    TBranch* b_Electron_eta;
-    TBranch* b_Electron_phi;
-    TBranch* b_Electron_mass;
-    TBranch* b_Muon_pt;
-    TBranch* b_Muon_eta;
-    TBranch* b_Muon_phi;
-    TBranch* b_Muon_mass;
-    TBranch* b_Electron_cutBased;
-    TBranch* b_Electron_mvaFall17V2Iso;
-    TBranch* b_Electron_charge;
-    TBranch* b_Muon_charge;
-    TBranch* b_Muon_tightId;
-    TBranch* b_Muon_mediumId;
-    TBranch* b_Muon_pfIsoId;
-    TBranch* b_Muon_pfRelIso04_all;
-    TBranch* b_numPU;
-    TBranch* b_nJet;
-    TBranch* b_Jet_pt;
-    TBranch* b_Jet_mass;
-    TBranch* b_Jet_btagCSVV2;
-    TBranch* b_Jet_btagDeepB;
-    TBranch* b_Jet_eta;
-
-    // Histograms
-    TH1D* cutflow_ee_;
-    TH1D* cutflow_mm_;
-    TH1D* cutflow_em_;
-    TH1D* cutflow_me_;
-    TH1D* CombMass_ee_;
-    TH1D* CombMass_mm_;
-    TH1D* CombMass_em_;
-    TH1D* CombMass_me_;
-    TH1D* ptl1_ee_; 
-    TH1D* ptl1_mm_; 
-    TH1D* ptl2_ee_; 
-    TH1D* ptl2_mm_; 
-    TH1D* l1eta_ee_;
-    TH1D* l2eta_ee_;
-    TH1D* l1eta_mm_;
-    TH1D* l2eta_mm_;
-    TH1D* l1phi_mm_;
-    TH1D* l2phi_mm_;
-    TH1D* l1phi_ee_;
-    TH1D* l2phi_ee_;
-    TH1D* SR_uw;
-    TH1D* elect_pt;
-    TH1D* muon_pt;
-    TH1D* elect_mass;
-    TH1D* muon_mass;
-    TH1D* elect_phi;
-    TH1D* muon_phi;
-    TH1D* elect_eta;
-    TH1D* muon_eta;
-    TH1D* jet_pt;
-    TH1D* jet_mass;
-    TH1D* jet_eta;
-    TH1D* n_bjet_;
-    TH1D* n_deepbjet_;
-    TH1D* n_cut_elec;
-    TH1D* n_mva_elec;
-    
-    //    TH1D* jet_phi;
-
-    // Readers to access the data (delete the ones you do not need).
-    //virtual void    SetScaleFactors() override;
-    virtual void    Init(TTree *tree) override;
-    SameSignLept(TTree * /*tree*/ =0) { } 
-    ~SameSignLept() { }
-    virtual void    SetupNewDirectory() override; 
-
-    ClassDefOverride(SameSignLept,0);
-
-protected:
-    bool zlep1IsTight();
-    bool zlep2IsTight();
-    bool zlep1IsMed();
-    bool zlep2IsMed();
-    bool tightZLeptons();
-    bool medZLeptons();
-    bool tight_med_ZLeptons();
-
-    virtual void    SetBranchesNanoAOD() override;
-    virtual void    SetBranchesUWVV() override;
-    void LoadBranchesUWVV(Long64_t entry, std::pair<Systematic, std::string> variation) override;
-    void LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std::string> variation) override;
-    void ApplyScaleFactors();
-    void SetMass();
-    void FillHistograms(Long64_t entry, std::pair<Systematic, std::string> variation) override;
+  static const unsigned int N_KEEP_MU_E_ = 15;
+  static const unsigned int N_KEEP_JET = 35;
+  UInt_t nElectron;
+  UInt_t nMuon;
+  UInt_t nJet;
  
+  // UInt_t ndeepbJet;
+  // UInt_t ngoodJet;
+  // Float_t Ht; 
+
+
+  Float_t Electron_pt[N_KEEP_MU_E_];
+  Float_t Electron_eta[N_KEEP_MU_E_];
+  Float_t Electron_phi[N_KEEP_MU_E_];
+  Float_t Electron_mass[N_KEEP_MU_E_];
+  Int_t Electron_cutBased[N_KEEP_MU_E_];
+  Int_t Electron_mvaFall17V2Iso[N_KEEP_MU_E_];
+  Int_t Electron_charge[N_KEEP_MU_E_];
+  Float_t Electron_miniPFRelIso_all[N_KEEP_MU_E_];
+  Float_t Electron_MVA[N_KEEP_MU_E_];
+  
+  Float_t goodJet[N_KEEP_JET];
+  Float_t Jet_mass[N_KEEP_JET];
+  Float_t Jet_btagCSVV2[N_KEEP_JET];
+  Float_t Jet_btagDeepB[N_KEEP_JET];
+  Float_t Jet_pt[N_KEEP_JET];  
+  Float_t Jet_eta[N_KEEP_JET];
+  Float_t Jet_phi[N_KEEP_JET];
+  Float_t Jet_neHEF[N_KEEP_JET];
+  Float_t Jet_neEmEF[N_KEEP_JET];
+  Int_t Jet_nConstituents[N_KEEP_JET];
+  Float_t Jet_chHEF[N_KEEP_JET];  
+  Float_t Jet_chEmEF[N_KEEP_JET]; 
+
+
+  Float_t Muon_pt[N_KEEP_MU_E_];
+  Float_t Muon_eta[N_KEEP_MU_E_];
+  Float_t Muon_phi[N_KEEP_MU_E_];
+  Float_t Muon_mass[N_KEEP_MU_E_];
+  Int_t Muon_charge[N_KEEP_MU_E_];
+  Bool_t Muon_tightId[N_KEEP_MU_E_];
+  Bool_t Muon_mediumId[N_KEEP_MU_E_];
+  UChar_t Muon_pfIsoId[N_KEEP_MU_E_];
+  Float_t Muon_pfRelIso04_all[N_KEEP_MU_E_];
+  Float_t Muon_miniPFRelIso_all[N_KEEP_MU_E_];
+
+  Int_t numPU;
+  /*    
+  TBranch* b_genWeight;
+  TBranch* b_MET;
+  TBranch* b_type1_pfMETPhi;
+  TBranch* b_nElectron;
+  TBranch* b_nMuon;
+  TBranch* b_Electron_pt;
+  TBranch* b_Electron_eta;
+  TBranch* b_Electron_phi;
+  TBranch* b_Electron_mass;
+  TBranch* b_Muon_pt;
+  TBranch* b_Muon_eta;
+  TBranch* b_Muon_phi;
+  TBranch* b_Muon_mass;
+  TBranch* b_Electron_cutBased;
+  TBranch* b_Electron_mvaFall17V2Iso;
+  TBranch* b_Electron_charge;
+  TBranch* b_Muon_charge;
+  TBranch* b_Muon_tightId;
+  TBranch* b_Muon_mediumId;
+  TBranch* b_Muon_pfIsoId;
+  TBranch* b_Muon_pfRelIso04_all;
+  TBranch* b_numPU;
+  TBranch* b_nJet;
+  TBranch* b_Jet_pt;
+  TBranch* b_Jet_mass;
+  TBranch* b_Jet_btagCSVV2;
+  TBranch* b_Jet_btagDeepB;
+  TBranch* b_Jet_eta;
+  
+  // Histograms
+  TH1D* cutflow_ee_;
+  TH1D* cutflow_mm_;
+  TH1D* cutflow_em_;
+  TH1D* cutflow_me_;
+  TH1D* CombMass_ee_;
+  TH1D* CombMass_mm_;
+  TH1D* CombMass_em_;
+  TH1D* CombMass_me_;
+  TH1D* ptl1_ee_; 
+  TH1D* ptl1_mm_; 
+  TH1D* ptl2_ee_; 
+  TH1D* ptl2_mm_; 
+  TH1D* l1eta_ee_;
+  TH1D* l2eta_ee_;
+  TH1D* l1eta_mm_;
+  TH1D* l2eta_mm_;
+  TH1D* l1phi_mm_;
+  TH1D* l2phi_mm_;
+  TH1D* l1phi_ee_;
+  TH1D* l2phi_ee_;
+  TH1D* SR_uw;
+  TH1D* elect_pt;
+  TH1D* muon_pt;
+  TH1D* elect_mass;
+  TH1D* muon_mass;
+  TH1D* elect_phi;
+  TH1D* muon_phi;
+  TH1D* elect_eta;
+  TH1D* muon_eta;
+  TH1D* jet_pt;
+  TH1D* jet_mass;
+  TH1D* jet_eta;
+  TH1D* n_bjet_;
+  TH1D* n_deepbjet_;
+  TH1D* n_cut_elec;
+  TH1D* n_mva_elec;
+  
+  */
+  // Readers to access the data (delete the ones you do not need).
+  //virtual void    SetScaleFactors() override;
+  // virtual void    Init(TTree *tree) override;
+  // SameSignLept(TTree * /*tree*/ // =0) { } 
+  // ~SameSignLept() { }
+  //  virtual void    SetupNewDirectory() override; 
+
+  ClassDefOverride(SameSignLept,0);
+
+  Float_t weight; 
+  double Ht;
+  int nTightJet, nbJet;
+  BranchManager b;
+  std::vector<GoodPart> goodParts;
+
+ protected:
+  bool IsGoodMuon(size_t);
+  bool IsGoodCBElec(size_t);
+  bool IsGoodJet(size_t);
+  bool IsGoodBJet(size_t);
+  bool IsGoodMVAElec(size_t);
+
+  bool isLooseJetId(size_t);
+  bool isTightJetId(size_t);
+
+
+
+  void clearValues();
+  void ApplyScaleFactors();
+
+  virtual void    SetBranchesNanoAOD() override;
+  void LoadBranchesNanoAOD(Long64_t entry, std::pair<Systematic, std::string> variation) override;
+  void FillHistograms(Long64_t entry, std::pair<Systematic, std::string> variation) override;
+  virtual void    SetupNewDirectory() override;
+  virtual std::string GetNameFromFile() override;
+  // Readers to access the data (delete the ones you do not need).
+  virtual void    SlaveBegin(TTree *tree) override;
+  virtual void    Init(TTree *tree) override;
+
+  ///ignore
+  void LoadBranchesUWVV(Long64_t entry, std::pair<Systematic, std::string> variation) override;
+  virtual void    SetBranchesUWVV() override; 
 };
 
 #endif
-

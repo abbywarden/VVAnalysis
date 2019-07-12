@@ -2,11 +2,13 @@
   <class name="FakeRateSelector"/>
   <class name="SelectorBase"/>
   <class name="WZSelector"/>
-
-  <class name="WZBackgroundSelector"/>
   <class name="WZSelectorBase"/>
+  <class name="WZBackgroundSelector"/>
+
+
   <class name="ScaleFactor"/>
   <class name="disambiguateFinalStates"/>
   <class name="disambiguateFinalStatesZZ"/>
   <class name="SameSignLept"/>
+
 </lcgdict>

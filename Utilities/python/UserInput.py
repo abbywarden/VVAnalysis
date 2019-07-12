@@ -71,4 +71,3 @@ def getHistInfo(analysis, input_hists, noConfig=False):
     hist_inputs = [getHistExpr(hists, analysis)]
 
     return hists, hist_inputs
-

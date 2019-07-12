@@ -191,3 +191,4 @@ void ScaleFactor::SetOverflowBins(TH2D * hist, OverflowBehavior b)
     }
   }
 }
+

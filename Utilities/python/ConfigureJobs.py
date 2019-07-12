@@ -1,4 +1,3 @@
-
 # all of our wonderful python libraries
 import datetime
 import UserInput
